@@ -1,13 +1,7 @@
-from distutils import errors
-from distutils.log import error
-from msilib.schema import Error
-from turtle import title
 import discord
 from discord.ext import commands
 import deezer
 import asyncio
-import requests
-import json
 
 access_token='frBaED5OSO90k05rvxvinPwOHYJmGT6m46kD6CFz6zlvt9sXzA'
 deezer_client = deezer.Client(app_id='534982', app_secret='e9a25ec2d6d09e95416770615222bed9', access_token=access_token)
