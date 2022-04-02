@@ -1,3 +1,6 @@
+from distutils import errors
+from distutils.log import error
+from msilib.schema import Error
 import discord
 from discord.ext import commands
 import deezer
@@ -35,8 +38,7 @@ def is_me(m):
 async def addplaylist(ctx, search_query):
     channel = bot.get_channel(959503035036467270)
     user = ctx.message.author
-    print(search_query)
-    #await ctx.message.delete()
+    await ctx.message.delete()
     if search_query != "":
         songs_data = findInfos(search_query)
         song_number = len(songs_data['id'])
@@ -46,6 +48,7 @@ async def addplaylist(ctx, search_query):
             return user == ctx.author and reaction.message.id == verification.id and str(reaction.emoji) in "✅❌⏭️⏮️"
 
         await ctx.send(f"Titre : {songs_data['artist'][i]} - {songs_data['title'][i]}\nCover : {songs_data['cover'][i]}\n")
+
         while(i < song_number):
             verification = await ctx.send("Est-ce correct ?")
             if i > 0:
@@ -60,20 +63,24 @@ async def addplaylist(ctx, search_query):
             except asyncio.TimeoutError:
                 await ctx.send("Choix annulé, timed out.")
                 return
+            
             await channel.purge(limit=2, check=is_me)
-            if str(reaction.emoji) == "✅":
-                addToPlaylist(songs_data['id'][i])
-                await ctx.send("OK")
+            emoji_reacted = str(reaction.emoji)
+
+            if emoji_reacted in "✅❌":
+                if emoji_reacted == "✅":
+                    try:
+                        addToPlaylist(songs_data['id'][i])
+                        await ctx.send(f"**{songs_data['artist'][i]} - {songs_data['title'][i]}** a bien été ajouté à la playlist")
+                    except deezer.exceptions.DeezerErrorResponse:
+                        await ctx.send(f"**{songs_data['artist'][i]} - {songs_data['title'][i]}** est déjà dans la playlist")
                 i = song_number
-            elif str(reaction.emoji) == "❌":
-                await ctx.send("PAS OK")
-                i = song_number
-            elif str(reaction.emoji) == "⏭️":
-                i = i + 1
-                await ctx.send(f"Titre : {songs_data['artist'][i]} - {songs_data['title'][i]}\nCover : {songs_data['cover'][i]}\n")
-            elif str(reaction.emoji) == "⏮️":
-                i = i - 1
-                await ctx.send(f"Titre : {songs_data['artist'][i]} - {songs_data['title'][i]}\nCover : {songs_data['cover'][i]}\n")
+            elif emoji_reacted in "⏭️⏮️":
+                if emoji_reacted == "⏭️":
+                    i = i + 1
+                else:
+                    i = i - 1
+                await ctx.send(f"Titre : **{songs_data['artist'][i]} - {songs_data['title'][i]}**\nCover : {songs_data['cover'][i]}\n")
     else:
         await ctx.send("USAGE : **!addplaylist <request>**")
 
