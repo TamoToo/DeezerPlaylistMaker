@@ -1,4 +1,3 @@
-from tabnanny import check
 import discord
 from discord.ext import commands
 import deezer
@@ -42,46 +41,12 @@ async def addplaylist(ctx, search_query):
         songs_data = findInfos(search_query)
         song_number = len(songs_data['id'])
         i = 0
-        await ctx.send(f"Titre : {songs_data['artist'][0]} - {songs_data['title'][0]}\nCover : {songs_data['cover'][0]}\n")
-
-        global track_searched_id
-        track_searched_id = songs_data['id']
-
-        verification = await ctx.send("Est-ce correct ?")
-        await verification.add_reaction("✅")
-        await verification.add_reaction("❌")
-        if song_number > 1:
-            await verification.add_reaction("⏭️")
         
         def check(reaction, user):
             return user == ctx.author and reaction.message.id == verification.id and str(reaction.emoji) in "✅❌⏭️⏮️"
-    
-        while(i < song_number):
-            print(i)
-            print(song_number)
-            try:
-                reaction, user = await bot.wait_for("reaction_add", check=check, timeout=30)
-            except asyncio.TimeoutError:
-                await ctx.send("Choix annulé, timed out.")
-                return
 
-            if str(reaction.emoji) == "✅":
-                addToPlaylist(songs_data['id'][i])
-                await ctx.send("OK")
-                i = song_number
-                print(i)
-            elif str(reaction.emoji) == "❌":
-                await ctx.send("PAS OK")
-                i = song_number
-            elif str(reaction.emoji) == "⏭️":
-                i = i + 1
-                await channel.purge(limit=2, check=is_me)
-                await ctx.send(f"Titre : {songs_data['artist'][i]} - {songs_data['title'][i]}\nCover : {songs_data['cover'][i]}\n")
-            elif str(reaction.emoji) == "⏮️":
-                i = i - 1
-                await channel.purge(limit=2, check=is_me)
-                await ctx.send(f"Titre : {songs_data['artist'][i]} - {songs_data['title'][i]}\nCover : {songs_data['cover'][i]}\n")
-            
+        await ctx.send(f"Titre : {songs_data['artist'][i]} - {songs_data['title'][i]}\nCover : {songs_data['cover'][i]}\n")
+        while(i < song_number):
             verification = await ctx.send("Est-ce correct ?")
             if i > 0:
                 await verification.add_reaction("⏮️")
@@ -89,6 +54,26 @@ async def addplaylist(ctx, search_query):
             await verification.add_reaction("❌")
             if i < song_number:
                 await verification.add_reaction("⏭️")
+
+            try:
+                reaction, user = await bot.wait_for("reaction_add", check=check, timeout=30)
+            except asyncio.TimeoutError:
+                await ctx.send("Choix annulé, timed out.")
+                return
+            await channel.purge(limit=2, check=is_me)
+            if str(reaction.emoji) == "✅":
+                addToPlaylist(songs_data['id'][i])
+                await ctx.send("OK")
+                i = song_number
+            elif str(reaction.emoji) == "❌":
+                await ctx.send("PAS OK")
+                i = song_number
+            elif str(reaction.emoji) == "⏭️":
+                i = i + 1
+                await ctx.send(f"Titre : {songs_data['artist'][i]} - {songs_data['title'][i]}\nCover : {songs_data['cover'][i]}\n")
+            elif str(reaction.emoji) == "⏮️":
+                i = i - 1
+                await ctx.send(f"Titre : {songs_data['artist'][i]} - {songs_data['title'][i]}\nCover : {songs_data['cover'][i]}\n")
     else:
         await ctx.send("USAGE : **!addplaylist <request>**")
 
