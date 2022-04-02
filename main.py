@@ -34,7 +34,7 @@ def is_me(m):
 async def playlist(ctx, cmd="", search_query=""):
     await ctx.message.delete()
     if cmd == "help":
-        help_string = discord.Embed(title="Help Menu", description='**!playlist**\n    - **add "<recherche>"** : Ajouter un son à la playlist\n  - **remove** : Retirer un son de la playlist\n - **info** : Envoie les titres de la playlist')
+        help_string = discord.Embed(title="Help Menu", description="**!playlist**\n    - **add \"<recherche>\"** : Ajouter un son à la playlist\n  - **remove** : Retirer un son de la playlist\n - **info** : Envoie les titres de la playlist")
         await ctx.send(embed=help_string)
     elif cmd == "info":
         playlist_data = requestInfosPlaylist()
@@ -54,8 +54,10 @@ async def playlist(ctx, cmd="", search_query=""):
             songs_data = findInfos(search_query)
             song_number = len(songs_data['id'])
             i = 0
-            
-            await ctx.send(f"Titre : {songs_data['artist'][i]} - {songs_data['title'][i]}\nCover : {songs_data['cover'][i]}\n")
+            try:
+                await ctx.send(f"Titre : {songs_data['artist'][i]} - {songs_data['title'][i]}\nCover : {songs_data['cover'][i]}\n")
+            except IndexError:
+                await ctx.send("Aucun titre n'a été trouvé...")
             while(i < song_number):
                 verification = await ctx.send("Est-ce correct ?")
                 if i > 0:
@@ -100,7 +102,7 @@ async def playlist(ctx, cmd="", search_query=""):
         embed_str = ""
         for i in range(playlist_len):
             embed_str += f"{i+1}. **{playlist_data['artist'][i]} - {playlist_data['title'][i]}**\n"
-        embed = discord.Embed(title="Choose a track to delete (delete <numero_1>, <numero_2>...)",
+        embed = discord.Embed(title="Choose a track to delete (delete <numero_1> <numero_2>...)",
                             description=embed_str)
         await ctx.send(embed=embed)
         
@@ -123,6 +125,8 @@ async def playlist(ctx, cmd="", search_query=""):
                 index = playlist_data['id'].index(id_to_delete)
                 modifyPlaylist("delete", id_to_delete)
                 await ctx.send(f"**{playlist_data['artist'][index]} - {playlist_data['title'][index]}** a bien été retiré de la playlist\n")
+        else:
+            await ctx.send("Please start over and send **\"delete\" <numéro 1> <numéro 2> ...**")
     else:
         await ctx.send("try **!playlist help**")
 
